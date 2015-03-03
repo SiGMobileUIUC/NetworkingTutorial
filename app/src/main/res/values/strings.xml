@@ -3,4 +3,6 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+
+    <string name="autocompleteAPI">http://www.cumtd.com/autocomplete/Stops/v1.0/json/search?query=</string>
 </resources>
