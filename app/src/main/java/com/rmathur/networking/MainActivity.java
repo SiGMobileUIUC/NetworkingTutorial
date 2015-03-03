@@ -62,7 +62,6 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 try {
-                    results.clear();
                     String userText = edtSearchStops.getText().toString();
                     if (userText.equals("isr")) {
                         userText = "Illinois Street Residence Hall";
@@ -128,10 +127,6 @@ public class MainActivity extends ActionBarActivity {
                 e.printStackTrace();
             }
             return builder.toString();
-        }
-
-        protected void onProgressUpdate(String... test) {
-            // Executes whenever publishProgress is called from doInBackground
         }
 
         protected void onPostExecute(String result) {
