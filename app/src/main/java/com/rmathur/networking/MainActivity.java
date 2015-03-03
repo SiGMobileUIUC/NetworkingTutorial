@@ -1,5 +1,6 @@
 package com.rmathur.networking;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.StrictMode;
 import android.support.v7.app.ActionBarActivity;
@@ -11,10 +12,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -93,6 +96,13 @@ public class MainActivity extends ActionBarActivity {
                         };
                         lstStopList.setAdapter(arrayAdapter);
                     }
+
+                    lstStopList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        // argument position gives the index of item which is clicked
+                        public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
+                            Toast.makeText(getApplicationContext(), results.get(position), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
