@@ -1,8 +1,7 @@
 package com.rmathur.networking;
 
-import android.content.Intent;
 import android.graphics.Color;
-import android.os.StrictMode;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -32,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -40,6 +38,7 @@ public class MainActivity extends ActionBarActivity {
     EditText edtSearchStops;
     ListView lstStopList;
     ArrayList<String> results = new ArrayList<String>();
+    String query;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,9 +47,6 @@ public class MainActivity extends ActionBarActivity {
 
         edtSearchStops = (EditText) findViewById(R.id.editText);
         lstStopList = (ListView) findViewById(R.id.listView);
-
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
 
         edtSearchStops.addTextChangedListener(new TextWatcher() {
             @Override
@@ -72,37 +68,7 @@ public class MainActivity extends ActionBarActivity {
                         userText = "Illinois Street Residence Hall";
                     }
                     userText = userText.replace(" ", "+").toLowerCase();
-                    String query = getStops(userText);
-
-                    JSONArray jsonArray = new JSONArray(query);
-                    HashMap<String, String> wipStopList = new HashMap<String, String>();
-
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        String stop_id = jsonArray.getJSONObject(i).getString("i");
-                        String name = jsonArray.getJSONObject(i).getString("n");
-                        wipStopList.put(name, stop_id);
-                        results.add(name);
-                    }
-
-                    if (!results.isEmpty() || results != null) {
-                        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, results) {
-                            @Override
-                            public View getView(int position, View convertView, ViewGroup parent) {
-                                View view = super.getView(position, convertView, parent);
-                                TextView textView = (TextView) view.findViewById(android.R.id.text1);
-                                textView.setTextColor(Color.BLACK);
-                                return view;
-                            }
-                        };
-                        lstStopList.setAdapter(arrayAdapter);
-                    }
-
-                    lstStopList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        // argument position gives the index of item which is clicked
-                        public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
-                            Toast.makeText(getApplicationContext(), results.get(position), Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    new MyAsyncTask().execute(userText);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -133,29 +99,73 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public String getStops(String query) {
-        StringBuilder builder = new StringBuilder();
-        HttpClient client = new DefaultHttpClient();
-        HttpGet httpGet = new HttpGet(getString(R.string.autocompleteAPI) + query);
-        try {
-            HttpResponse response = client.execute(httpGet);
-            StatusLine statusLine = response.getStatusLine();
-            int statusCode = statusLine.getStatusCode();
-            if (statusCode == 200) {
-                HttpEntity entity = response.getEntity();
-                InputStream content = entity.getContent();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(content));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    builder.append(line);
-                }
-            } else {
-                Log.e(MainActivity.class.toString(), "Failed to get JSON object");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    private class MyAsyncTask extends AsyncTask<String, Void, String> {
+        protected void onPreExecute() {
+            // Runs on the UI thread before doInBackground
         }
-        return builder.toString();
-    }
 
+        protected String doInBackground(String... strings) {
+            // Some long-running task like downloading an image.
+            StringBuilder builder = new StringBuilder();
+            HttpClient client = new DefaultHttpClient();
+            HttpGet httpGet = new HttpGet(getString(R.string.autocompleteAPI) + strings[0]);
+            try {
+                HttpResponse response = client.execute(httpGet);
+                StatusLine statusLine = response.getStatusLine();
+                int statusCode = statusLine.getStatusCode();
+                if (statusCode == 200) {
+                    HttpEntity entity = response.getEntity();
+                    InputStream content = entity.getContent();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(content));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        builder.append(line);
+                    }
+                } else {
+                    Log.e(MainActivity.class.toString(), "Failed to get JSON object");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return builder.toString();
+        }
+
+        protected void onProgressUpdate(String... test) {
+            // Executes whenever publishProgress is called from doInBackground
+        }
+
+        protected void onPostExecute(String result) {
+            results.clear();
+            query = result;
+
+            try {
+                JSONArray jsonArray = new JSONArray(query);
+
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    String name = jsonArray.getJSONObject(i).getString("n");
+                    results.add(name);
+                }
+
+                ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, results) {
+                    @Override
+                    public View getView(int position, View convertView, ViewGroup parent) {
+                        View view = super.getView(position, convertView, parent);
+                        TextView textView = (TextView) view.findViewById(android.R.id.text1);
+                        textView.setTextColor(Color.BLACK);
+                        return view;
+                    }
+                };
+                lstStopList.setAdapter(arrayAdapter);
+
+                lstStopList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    // argument position gives the index of item which is clicked
+                    public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
+                        Toast.makeText(getApplicationContext(), results.get(position), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
