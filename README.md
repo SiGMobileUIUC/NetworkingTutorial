@@ -93,7 +93,7 @@ A couple of things to notice here:
 
 Good Android practice is to not put links in code. Instead, were going to replace the http link with a string object, **autocompleteAPI** in the app/src/main/res/values/string.xml as so:
 
-```Java
+```XML
  <string name="autocompleteAPI">http://www.cumtd.com/autocomplete/Stops/v1.0/json/search?query=</string>
 ```
 Next, were going to pull JSON from HTTP with the following chunk of code. This is a very generic request; the code can be copy+pasted regularly:
