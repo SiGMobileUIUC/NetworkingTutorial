@@ -192,7 +192,7 @@ A last bug that you may have encountered is, when you press space, the app crash
 @Override
 public void onTextChanged(CharSequence s, int start, int before, int count) {
 	String userText = edtStopSearch.getText().toString();
-	userText = userText.replaced(" ", "+").toLowerCase();
+	userText = userText.replace(" ", "+").toLowerCase();
 	new MyAsyncTask().execute(userText);
 }
 ```
