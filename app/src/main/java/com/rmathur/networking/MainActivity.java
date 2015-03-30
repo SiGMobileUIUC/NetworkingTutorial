@@ -39,6 +39,8 @@ public class MainActivity extends ActionBarActivity {
     ListView lstStopList;
     ArrayList<String> results = new ArrayList<String>();
     String query;
+    
+    private MyAsyncTask myAsyncTask = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +69,8 @@ public class MainActivity extends ActionBarActivity {
                         userText = "Illinois Street Residence Hall";
                     }
                     userText = userText.replace(" ", "+").toLowerCase();
-                    new MyAsyncTask().execute(userText);
+                    myAsyncTask = new MyAsyncTask();
+                    myAsyncTask.execute(userText);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -96,6 +99,15 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+    
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(myAsyncTask!=null) {
+            myAsyncTask.cancel(true);
+        }
+        myAsyncTask = null;
     }
 
     private class MyAsyncTask extends AsyncTask<String, Void, String> {
@@ -161,6 +173,8 @@ public class MainActivity extends ActionBarActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            
+            myAsyncTask = null;
         }
     }
 }
